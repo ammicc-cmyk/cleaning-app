@@ -1,0 +1,26 @@
+:root { --bg:#f4f3ec; --card:#fff; --ink:#26332d; --muted:#5d6b64; --accent:#3d6b5a; --on:#fff; --line:#d5d8cf; color-scheme: light dark; }
+@media (prefers-color-scheme: dark) { :root { --bg:#19211d; --card:#232d28; --ink:#e8ece5; --muted:#a5b3ab; --accent:#8cc0a9; --on:#14201a; --line:#3a4840; } }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.5 system-ui,sans-serif; }
+main { max-width:480px; min-height:100dvh; margin:auto; padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:14px; }
+.center { justify-content:center; text-align:center; }
+h1 { font-size:28px; line-height:1.2; margin:0; text-wrap:balance; }
+h2 { font-size:19px; margin:12px 0 0; }
+p { margin:0; }
+.muted { color:var(--muted); font-size:15px; }
+.card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:22px; }
+.task { font-size:21px; line-height:1.4; }
+.clock { font-size:clamp(72px,24vw,112px); line-height:1; font-variant-numeric:tabular-nums; font-weight:300; }
+button, textarea, input { font:inherit; color:inherit; }
+button { min-height:48px; padding:10px 16px; border:1px solid var(--line); border-radius:12px; background:var(--card); cursor:pointer; }
+button:disabled { opacity:.5; cursor:default; }
+button:focus-visible, textarea:focus-visible { outline:3px solid var(--accent); outline-offset:2px; }
+.primary, [aria-pressed=true] { background:var(--accent); border-color:var(--accent); color:var(--on); }
+.primary { min-height:56px; font-weight:600; }
+.link { background:none; border-color:transparent; color:var(--muted); text-decoration:underline; }
+.chips { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.segments { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
+.field { display:grid; gap:6px; color:var(--muted); font-size:15px; }
+textarea { width:100%; padding:10px; border:1px solid var(--line); border-radius:12px; background:var(--card); }
+input[type=file] { width:100%; }
+.notice { padding:12px 20px; background:var(--card); border-bottom:1px solid var(--line); }

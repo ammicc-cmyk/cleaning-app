@@ -1,0 +1,28 @@
+# Белый список: по умолчанию запрещено ВСЁ, публикуется только перечисленное.
+/*
+!/.gitignore
+!/.github/
+!/.githooks/
+!/scripts/
+!/src/
+!/public/
+!/tests/
+!/index.html
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/vite.config.ts
+
+# Запрещено и внутри разрешённых папок
+.env*
+*.pem
+*.key
+*.p12
+*.pfx
+*secret*
+*credential*
+*.sqlite*
+*.db
+*.log
+mikrouborka-*.txt
+HANDOVER*
