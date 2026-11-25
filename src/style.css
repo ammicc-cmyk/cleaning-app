@@ -48,3 +48,7 @@ dt { font-weight:600; }
 dd { margin:0; color:var(--muted); font-size:15px; }
 .code { overflow-wrap:anywhere; padding:12px; border:1px solid var(--line); border-radius:12px; background:var(--card); }
 input[type=text] { width:100%; min-height:48px; padding:8px 12px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); }
+.list { margin:12px 0 0; padding:0; list-style:none; display:grid; gap:10px; text-align:left; }
+.list:first-child { margin:0; }
+.list li { display:flex; justify-content:space-between; gap:12px; }
+.list small { color:var(--muted); white-space:nowrap; }

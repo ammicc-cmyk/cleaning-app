@@ -1,4 +1,4 @@
-import { TASKS, type Task, type ZoneId } from './tasks'
+import { TASKS, type ZoneId } from './tasks'
 
 export type HomeId = 'studio' | 'one' | 'two' | 'three'
 export const HOMES: { id: HomeId; name: string }[] = [
@@ -12,29 +12,34 @@ const LABELS: Record<ZoneId, string> = {
   kitchen: 'Кухня', hall: 'Прихожая', living: 'Гостиная', bedroom: 'Спальня',
   desk: 'Рабочий стол', bath: 'Ванная', extra: 'Ещё одна комната',
 }
+const oneRoom = (home: HomeId | null) => home === 'studio' || home === 'one'
 
 /** Название места для этой квартиры; null — такого места нет. Не указано — считаем как 2 комнаты. */
 export function placeName(zone: ZoneId, home: HomeId | null): string | null {
   if (zone === 'extra') return home === 'three' ? LABELS.extra : null
   if (home === 'studio' && zone === 'kitchen') return 'Кухонная зона'
-  if ((home === 'studio' || home === 'one') && (zone === 'living' || zone === 'bedroom')) return 'Комната'
+  if (oneRoom(home) && (zone === 'living' || zone === 'bedroom')) return 'Комната'
   return LABELS[zone]
 }
 
-/** Места этой квартиры без повторов: в студии гостиная и спальня — одна комната. */
-export function places(home: HomeId | null): { zone: ZoneId; name: string }[] {
-  const out: { zone: ZoneId; name: string }[] = []
-  for (const zone of Object.keys(LABELS) as ZoneId[]) {
-    const name = placeName(zone, home)
-    if (name && !out.some(p => p.name === name)) out.push({ zone, name })
-  }
-  return out
+/** Место недели, к которому относится зона: стол идёт вместе со спальней, в одной комнате всё вместе. */
+export function weekZone(zone: ZoneId, home: HomeId | null): ZoneId {
+  if (zone === 'desk' || (zone === 'living' && oneRoom(home))) return 'bedroom'
+  return zone === 'extra' && home !== 'three' ? 'kitchen' : zone
 }
 
-/** Подходит ли задача квартире и выбранному месту. */
-export function fits(t: Task, home: HomeId | null, focus: ZoneId | null): boolean {
-  const name = placeName(t.zone, home)
-  return name !== null && (!focus || name === placeName(focus, home))
+export const weekName = (zone: ZoneId, home: HomeId | null) =>
+  zone === 'bedroom' && !oneRoom(home) ? 'Спальня и рабочий стол' : placeName(zone, home)!
+
+const ORDER: ZoneId[] = ['kitchen', 'bath', 'hall', 'bedroom', 'living', 'extra']
+/** Порядок мест по неделям для этой квартиры. */
+export const weekPlaces = (home: HomeId | null) => ORDER
+  .filter(z => weekZone(z, home) === z)
+  .map(zone => ({ zone, name: weekName(zone, home) }))
+
+export function nextWeekZone(zone: ZoneId, home: HomeId | null): ZoneId {
+  const list = weekPlaces(home)
+  return list[(list.findIndex(p => p.zone === weekZone(zone, home)) + 1) % list.length]!.zone
 }
 
-export const tasksFor = (home: HomeId | null, focus: ZoneId | null) => TASKS.filter(t => fits(t, home, focus))
+export const tasksFor = (home: HomeId | null) => TASKS.filter(t => placeName(t.zone, home) !== null)

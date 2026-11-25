@@ -1,36 +1,55 @@
 import { useState } from 'react'
-import { TASKS, taskText, type Minutes } from '../content/tasks'
-import { placeName } from '../content/home'
+import type { Minutes, ZoneId } from '../content/tasks'
+import { nextWeekZone, placeName, weekName } from '../content/home'
 import { TIPS } from '../content/tips'
-import { pickNext } from '../domain/taskPicker'
+import { buildPlan, focusInfo, skip } from '../domain/planner'
+import { plural } from '../domain/progress'
 import type { AppState } from '../storage/store'
 
 interface Props {
-  state: AppState; update: (p: Partial<AppState>) => void; onStart: (m: Minutes) => void
-  onPhoto: () => void; onScenarios: () => void
+  state: AppState; update: (p: Partial<AppState>) => void
+  onStart: (m: Minutes, mode?: 'auto' | 'routine') => void
+  onZone: (z: ZoneId) => void; onPhoto: () => void; onScenarios: () => void
 }
 
-export function Today({ state, update, onStart, onPhoto, onScenarios }: Props) {
+export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: Props) {
   const [tip, setTip] = useState(() => Math.floor(Date.now() / 86_400_000) % TIPS.length)
-  const task = TASKS.find(t => t.id === state.taskId)!
+  const now = Date.now()
   const last = state.sessions.at(-1)
-  const away = !!last && Date.now() - last.at * 1000 > 2 * 86_400_000
+  const away = !!last && now - last.at * 1000 > 2 * 86_400_000
+  const plan = buildPlan(state, state.minutes, now)
+  const first = plan[0]!
+  const total = plan.reduce((n, t) => n + t.min, 0)
+  const week = focusInfo(state, now)
+  const name = weekName(week.zone, state.home)
+  const next = nextWeekZone(week.zone, state.home)
   return (
     <main className="with-nav">
       <h1>{!last ? 'Порядок без генеральных уборок' : away ? 'Рады вас видеть' : 'На сегодня'}</h1>
-      <p className="muted">{!last ? 'Выбирать ничего не нужно. Сделайте одно действие и остановитесь по сигналу.'
-        : away ? 'Начнём с лёгкого? Пяти минут вполне достаточно.' : 'Одного небольшого действия достаточно.'}</p>
-      <div aria-live="polite" className="stack">
-        <p className="place"><span>Где</span> <b>{placeName(task.zone, state.home)}</b></p>
-        <section className="card"><p className="task">{taskText(task, state.minutes)}</p></section>
-      </div>
-      {state.zone && <button className="link" onClick={() => update({ zone: null, taskId: pickNext(state.home, null, state.recent, state.taskId).id })}>Вернуть подбор без выбора</button>}
+      <p className="muted">{!last ? 'Выбирать ничего не нужно: немного рутины, одно место на неделю и остановка по сигналу.'
+        : away ? 'Начнём с лёгкого? Пяти минут вполне достаточно.' : 'Сделайте, сколько получится. Остановиться можно в любой момент.'}</p>
+      {(week.weekOver || week.allDone) && <section className="card stack">
+        <p className="task">{week.allDone ? `${name}: все дела сделаны` : `${name}: неделя прошла`}</p>
+        <p className="muted">{!state.guiltFree && week.done > 0 && !week.allDone && `Сделано дел: ${week.done} из ${week.total}. `}{week.allDone ? 'Можно перейти дальше, когда захочется.' : 'Остальное вернётся на следующем круге.'}</p>
+        <button onClick={() => onZone(next)}>Дальше: {weekName(next, state.home)}</button>
+        {week.weekOver && <button onClick={() => onZone(week.zone)}>Остаться ещё на неделю</button>}
+      </section>}
+      <p className="place"><span>Место недели</span> <b>{name}</b></p>
+      {!state.guiltFree && week.done > 0 && !week.weekOver && !week.allDone && <p className="muted">Сделано дел: {week.done} из {week.total}</p>}
+      <section className="card stack" aria-live="polite">
+        <p className="muted">{placeName(first.zone, state.home)}, около {first.min} мин</p>
+        <p className="task">{first.text}</p>
+      </section>
       <button className="primary" onClick={() => onStart(state.minutes)}>Запустить таймер</button>
-      {away && state.minutes !== 5 && <button onClick={() => onStart(5)}>Начать с 5 минут</button>}
-      <button onClick={() => update({ taskId: pickNext(state.home, state.zone, state.recent, state.taskId).id })}>Заменить задачу</button>
+      {away && state.minutes !== 5 && <button onClick={() => onStart(5, 'routine')}>Начать с 5 минут</button>}
+      <button onClick={() => update({ skipped: skip(state, first.id, state.minutes, now) })}>Заменить задачу</button>
       <div className="segments" role="group" aria-label="Длительность">
         {([5, 12, 15] as Minutes[]).map(m => <button key={m} aria-pressed={m === state.minutes} onClick={() => update({ minutes: m })}>{m} мин</button>)}
       </div>
+      {plan.length > 1 && <details className="card">
+        <summary>Весь список: {plan.length} {plural(plan.length, 'дело', 'дела', 'дел')}, около {total} мин</summary>
+        <ul className="list">{plan.map(t => <li key={t.id}><span>{t.text}</span><small>{t.min} мин</small></li>)}</ul>
+      </details>}
       <h2>Подсказка</h2>
       <section className="card stack">
         <b>{TIPS[tip]!.title}</b>

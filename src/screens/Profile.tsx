@@ -1,22 +1,21 @@
 import { useState } from 'react'
-import { decode, encode, plural, summary, type Session } from '../domain/progress'
-import { HOMES, fits } from '../content/home'
-import { TASKS } from '../content/tasks'
-import { pickNext } from '../domain/taskPicker'
+import { plural, summary } from '../domain/progress'
+import { HOMES } from '../content/home'
+import { decodeBackup, encodeBackup, type Backup } from '../domain/backup'
 import { reminderIcs } from '../domain/reminder'
 import { Autosave, type SyncStatus } from './Autosave'
 import { cloudEnabled } from '../storage/cloud'
 import { downloadText } from '../download'
 import type { AppState } from '../storage/store'
 
-interface Props { state: AppState; update: (p: Partial<AppState>) => void; onRestore: (s: Session[]) => void; sync: SyncStatus }
+interface Props { state: AppState; update: (p: Partial<AppState>) => void; onRestore: (b: Backup) => void; sync: SyncStatus }
 
 export function Profile({ state, update, onRestore, sync }: Props) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
   const [reminderMsg, setReminderMsg] = useState('')
   const s = summary(state.sessions, Date.now())
-  const code = encode(state.sessions)
+  const code = encodeBackup(state)
   const unsaved = Math.max(0, state.sessions.length - state.backedUp)
   const backedUp = () => update({ backedUp: state.sessions.length })
 
@@ -33,11 +32,11 @@ export function Profile({ state, update, onRestore, sync }: Props) {
     setMsg('Файл с копией передан в загрузки.')
   }
   const restore = (raw: string) => {
-    const got = decode(raw)
+    const got = decodeBackup(raw)
     if (!got) { setMsg('Это не похоже на копию прогресса. Проверьте, что она вставлена целиком.'); return }
     onRestore(got)
     setText('')
-    setMsg(`Готово. Сессий в копии: ${got.length}.`)
+    setMsg(`Готово. Сессий в копии: ${got.sessions.length}.`)
   }
   const pickFile = async (f?: File) => {
     if (!f) return
@@ -54,22 +53,19 @@ export function Profile({ state, update, onRestore, sync }: Props) {
 
       <h2>Моя квартира</h2>
       <div className="chips" role="group" aria-label="Моя квартира">
-        {HOMES.map(h => <button key={h.id} aria-pressed={h.id === state.home} onClick={() => {
-          const task = TASKS.find(t => t.id === state.taskId)!
-          update({ home: h.id, zone: null, taskId: fits(task, h.id, null) ? task.id : pickNext(h.id, null, state.recent).id })
-        }}>{h.name}</button>)}
+        {HOMES.map(h => <button key={h.id} aria-pressed={h.id === state.home} onClick={() => update({ home: h.id })}>{h.name}</button>)}
       </div>
       <p className="muted">Подберём задачи и названия мест под ваш дом.</p>
 
       <h2>Режим без вины</h2>
       <label className="check">
         <input type="checkbox" checked={state.guiltFree} onChange={e => update({ guiltFree: e.target.checked })} />
-        Не показывать счётчики минут и дней
+        Не показывать счётчики минут, дней и дел
       </label>
       <p className="muted">Пропуски здесь никогда не обнуляют прогресс.</p>
 
       <h2>Напоминания в календарь</h2>
-      <p className="muted">Добавим 14 дней, в каждом готовое действие. Открывать приложение не понадобится.</p>
+      <p className="muted">Добавим 14 дней с местом недели. Дела приложение подберёт, когда вы его откроете.</p>
       <label className="field">Время
         <input type="time" required value={state.remindAt} onChange={e => e.target.value && update({ remindAt: e.target.value })} />
       </label>

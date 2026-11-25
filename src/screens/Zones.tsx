@@ -1,5 +1,7 @@
 import type { ZoneId } from '../content/tasks'
-import { places, type HomeId } from '../content/home'
+import { weekPlaces } from '../content/home'
+import { focusZone } from '../domain/planner'
+import type { AppState } from '../storage/store'
 
 // Содержание платного сюда не добавляем: репозиторий и сборка публичны.
 const PRO = [
@@ -8,26 +10,29 @@ const PRO = [
   ['Подборки', 'Пятна, запахи, кухня'],
 ] as const
 
-interface Props { home: HomeId | null; onZone: (z: ZoneId) => void; onRestart: () => void }
+interface Props { state: AppState; onZone: (z: ZoneId) => void; onRestart: () => void }
 
-export function Zones({ home, onZone, onRestart }: Props) {
+export function Zones({ state, onZone, onRestart }: Props) {
+  const current = focusZone(state)
   return (
     <main className="with-nav">
       <h1>Сценарии</h1>
       <section className="card stack">
         <p className="task">Быстрый перезапуск</p>
-        <p className="muted">Одно лёгкое действие на 5 минут. Подойдёт после любого перерыва.</p>
+        <p className="muted">Несколько лёгких дел на 5 минут. Можно остановиться после первого.</p>
         <button className="primary" onClick={onRestart}>Начать 5 минут</button>
+      </section>
+      <section className="card stack">
+        <p className="task">Место недели</p>
+        <p className="muted">Места идут по кругу. Можно выбрать любое: сделанное не потеряется.</p>
+        <div className="chips">
+          {weekPlaces(state.home).map(p => <button key={p.zone} aria-pressed={p.zone === current}
+            onClick={() => { if (p.zone !== current) onZone(p.zone) }}>{p.name}</button>)}
+        </div>
       </section>
       <details className="card">
         <summary>Скоро в PRO</summary>
         <dl>{PRO.map(([name, about]) => <div key={name}><dt>{name}</dt><dd>{about}</dd></div>)}</dl>
-      </details>
-      <details className="card">
-        <summary>Выбрать место самому</summary>
-        <div className="chips">
-          {places(home).map(p => <button key={p.zone} onClick={() => onZone(p.zone)}>{p.name}</button>)}
-        </div>
       </details>
     </main>
   )

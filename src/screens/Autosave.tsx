@@ -34,7 +34,7 @@ export function Autosave({ state, status, onCode }: Props) {
   if (!code) return (
     <>
       <h2>Автосохранение</h2>
-      <p className="muted">Время и длительность сессий будут храниться на нашем сервере. Без имени, почты и телефона.</p>
+      <p className="muted">Время и длительность сессий будут храниться на нашем сервере. Без имени, почты и телефона. Отметки дел остаются на устройстве и в копии прогресса.</p>
       <button className="primary" disabled={busy} onClick={() => run(async () => onCode(await createProfile()))}>Включить</button>
       <label className="field">Уже есть личный код
         <input type="text" autoComplete="off" autoCapitalize="none" spellCheck={false} value={text} onChange={e => setText(e.target.value)} />

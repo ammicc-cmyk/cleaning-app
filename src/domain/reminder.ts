@@ -1,6 +1,6 @@
-import { taskText, type Minutes, type Task } from '../content/tasks'
-import { placeName, type HomeId } from '../content/home'
-import { pickNext } from './taskPicker'
+import type { Minutes } from '../content/tasks'
+import { weekName } from '../content/home'
+import { dayNum, focusZone, type PlanState } from './planner'
 
 const esc = (s: string) => s.replace(/[\\;,]/g, c => `\\${c}`).replace(/\n/g, '\\n')
 
@@ -17,41 +17,40 @@ function fold(line: string): string {
   return out
 }
 
-export interface Reminder { uid: string; start: string; task: Task; home: HomeId | null; minutes: Minutes }
+export interface Reminder { uid: string; start: string; title: string; minutes: Minutes }
 
-/** События с готовой задачей внутри: приложение открывать не нужно. */
+/** Дела подбираются при открытии приложения, поэтому в календаре только место и время. */
 export function buildIcs(items: Reminder[], now: Date, extra: string[] = []): string {
   const stamp = now.toISOString().replace(/[-:]|\.\d+/g, '')
   const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//cleaning-app//RU', ...extra]
-  for (const { uid, start, task, home, minutes } of items) {
-    const place = placeName(task.zone, home)!
+  for (const { uid, start, title, minutes } of items) {
     lines.push(
       'BEGIN:VEVENT', `UID:${uid}`, `DTSTAMP:${stamp}`, `DTSTART:${start}`, `DURATION:PT${minutes}M`,
-      `SUMMARY:${esc(`${place}, ${minutes} мин: ${taskText(task, 5)}`)}`,
-      `DESCRIPTION:${esc(`${taskText(task, minutes)}\nЕсли сегодня нет сил, просто пропустите. Это нормально.`)}`,
+      `SUMMARY:${esc(`${title}, ${minutes} мин`)}`,
+      `DESCRIPTION:${esc(`Откройте приложение: дела уже подобраны.\nЕсли сегодня нет сил, просто пропустите. Это нормально.`)}`,
       'TRANSP:TRANSPARENT',
-      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(place)}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT')
+      'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${esc(title)}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT')
   }
   return [...lines, 'END:VCALENDAR', ''].map(fold).join('\r\n')
 }
 
 /** Файл на 14 дней. Время местное, без часового пояса. */
 export function reminderIcs(
-  time: string, now: Date, o: { home: HomeId | null; minutes: Minutes; recent: string[] },
+  time: string, now: Date, o: PlanState & { minutes: Minutes },
 ): string {
   const [h, m] = time.split(':').map(Number) as [number, number]
   const p = (n: number) => String(n).padStart(2, '0')
   const first = new Date(now)
   first.setHours(h, m, 0, 0)
   const shift = first <= now ? 1 : 0
-  let recent = o.recent
+  const weekEnd = dayNum(o.focus ? o.focus.since * 1000 : now.getTime()) + 7
   const items: Reminder[] = []
   for (let i = 0; i < 14; i++) {
     const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + shift + i)
     const day = `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`
-    const task = pickNext(o.home, null, recent, recent.at(-1))
-    recent = [...recent, task.id].slice(-10)
-    items.push({ uid: `${day}-cleaning-app`, start: `${day}T${p(h)}${p(m)}00`, task, home: o.home, minutes: o.minutes })
+    // Дальше недели место может смениться, поэтому его не называем.
+    const title = dayNum(d.getTime()) < weekEnd ? `Место недели: ${weekName(focusZone(o), o.home)}` : 'Небольшая уборка'
+    items.push({ uid: `${day}-cleaning-app`, start: `${day}T${p(h)}${p(m)}00`, title, minutes: o.minutes })
   }
   return buildIcs(items, now)
 }

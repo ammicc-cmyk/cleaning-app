@@ -1,4 +1,4 @@
-import type { Minutes, ZoneId } from '../content/tasks'
+import type { Minutes } from '../content/tasks'
 
 /** Остаток всегда считается от часов, поэтому фон и перезагрузка его не сбивают. */
 export interface ActiveTimer {
@@ -6,14 +6,15 @@ export interface ActiveTimer {
   durationMs: number
   endsAt: number
   pausedLeftMs: number | null
-  taskId: string
-  zone: ZoneId
+  plan: string[]
+  i: number // какое дело сейчас
+  done: string[]
   minutes: Minutes
 }
 
-export function startTimer(now: number, minutes: Minutes, taskId: string, zone: ZoneId): ActiveTimer {
+export function startTimer(now: number, minutes: Minutes, plan: string[]): ActiveTimer {
   const durationMs = minutes * 60_000
-  return { startedAt: now, durationMs, endsAt: now + durationMs, pausedLeftMs: null, taskId, zone, minutes }
+  return { startedAt: now, durationMs, endsAt: now + durationMs, pausedLeftMs: null, minutes, plan, i: 0, done: [] }
 }
 export function leftMs(t: ActiveTimer, now: number): number {
   return Math.min(t.durationMs, Math.max(0, t.pausedLeftMs ?? t.endsAt - now))
