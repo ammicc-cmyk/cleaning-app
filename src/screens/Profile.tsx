@@ -4,12 +4,14 @@ import { HOMES, fits } from '../content/home'
 import { TASKS } from '../content/tasks'
 import { pickNext } from '../domain/taskPicker'
 import { reminderIcs } from '../domain/reminder'
+import { Autosave, type SyncStatus } from './Autosave'
+import { cloudEnabled } from '../storage/cloud'
 import { downloadText } from '../download'
 import type { AppState } from '../storage/store'
 
-interface Props { state: AppState; update: (p: Partial<AppState>) => void; onRestore: (s: Session[]) => void }
+interface Props { state: AppState; update: (p: Partial<AppState>) => void; onRestore: (s: Session[]) => void; sync: SyncStatus }
 
-export function Profile({ state, update, onRestore }: Props) {
+export function Profile({ state, update, onRestore, sync }: Props) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
   const [reminderMsg, setReminderMsg] = useState('')
@@ -77,9 +79,11 @@ export function Profile({ state, update, onRestore }: Props) {
       }}>Добавить в календарь</button>
       <p className="muted" role="status">{reminderMsg || 'Раз в день. Любой день можно удалить в самом календаре.'}</p>
 
+      {cloudEnabled && <Autosave state={state} status={sync} onCode={cloudCode => update({ cloudCode })} />}
+
       {state.sessions.length > 0 && <>
         <h2>Сохранить копию прогресса</h2>
-        <p className="muted">Данные пока хранятся только в этом браузере. Копия поможет вернуть их после очистки или на другом телефоне.{unsaved > 0 && !state.guiltFree && ` Новых сессий без копии: ${unsaved}.`}</p>
+        <p className="muted">{state.cloudCode ? 'Запасной способ: копия' : 'Данные пока хранятся только в этом браузере. Копия'} поможет вернуть их после очистки или на другом телефоне.{unsaved > 0 && !state.guiltFree && ` Новых сессий без копии: ${unsaved}.`}</p>
         <button onClick={copy}>Скопировать ссылку</button>
         <button onClick={download}>Скачать файл</button>
       </>}

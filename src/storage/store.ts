@@ -1,6 +1,7 @@
 import { TASKS, type Minutes, type ZoneId } from '../content/tasks'
 import { HOMES, places, tasksFor, type HomeId } from '../content/home'
 import type { ActiveTimer } from '../domain/timer'
+import { isCode } from './cloud'
 import { isSession, mergeSessions, type Session } from '../domain/progress'
 
 export interface AppState {
@@ -13,13 +14,14 @@ export interface AppState {
   backedUp: number // сколько сессий было в последней копии
   timer: ActiveTimer | null
   guiltFree: boolean
+  cloudCode: string | null // личный код автосохранения
   home: HomeId | null // null: не указано
   remindAt: string
 }
 export const KEY = 'cleaning-app'
 export const initial: AppState = {
-  v: 2, zone: null, minutes: 12, taskId: 'K1', recent: [], sessions: [], backedUp: 0, timer: null,
-  guiltFree: false, home: null, remindAt: '19:00',
+  v: 2, zone: null, minutes: 15, taskId: 'K1', recent: [], sessions: [], backedUp: 0, timer: null,
+  guiltFree: false, cloudCode: null, home: null, remindAt: '19:00',
 }
 
 export function parseState(raw: string | null): AppState {
@@ -34,13 +36,14 @@ export function parseState(raw: string | null): AppState {
     && (t.pausedLeftMs === null || Number.isFinite(t.pausedLeftMs)) && TASKS.some(x => x.id === t.taskId)
   return {
     v: 2, zone, home,
-    minutes: p.minutes === 5 || p.minutes === 15 ? p.minutes : 12,
+    minutes: p.minutes === 5 || p.minutes === 12 ? p.minutes : initial.minutes,
     taskId: tasks.some(x => x.id === p.taskId) ? p.taskId! : tasks[0]!.id,
     recent: Array.isArray(p.recent) ? p.recent.filter(x => typeof x === 'string').slice(-10) : [],
     sessions: Array.isArray(p.sessions) ? mergeSessions(p.sessions.filter(isSession), []) : [],
     backedUp: Number.isFinite(p.backedUp) ? p.backedUp! : 0,
     timer: timerOk ? t : null,
     guiltFree: p.guiltFree === true,
+    cloudCode: isCode(p.cloudCode) ? p.cloudCode : null,
     remindAt: /^([01]\d|2[0-3]):[0-5]\d$/.test(p.remindAt ?? '') ? p.remindAt! : initial.remindAt,
   }
 }

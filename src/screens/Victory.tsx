@@ -12,7 +12,7 @@ export function Victory({ sec, state, onHome, onProfile }: Props) {
       <p>На сегодня достаточно. Шкафы внутри не трогаем.</p>
       {!state.guiltFree && <p className="muted">За 30 дней: {s.minutes} мин заботы о доме, {s.days} {plural(s.days, 'день', 'дня', 'дней')}.</p>}
       <button className="primary" onClick={onHome}>Хорошо</button>
-      {state.sessions.length > state.backedUp && <button className="link" onClick={onProfile}>Сохранить копию прогресса</button>}
+      {!state.cloudCode && state.sessions.length > state.backedUp && <button className="link" onClick={onProfile}>Сохранить копию прогресса</button>}
     </main>
   )
 }

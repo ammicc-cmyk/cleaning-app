@@ -10,6 +10,8 @@ import { Victory } from './screens/Victory'
 import { Photo } from './screens/Photo'
 import { Zones } from './screens/Zones'
 import { Profile } from './screens/Profile'
+import type { SyncStatus } from './screens/Autosave'
+import { CloudError, cloudEnabled, readCode, syncSessions } from './storage/cloud'
 import { prepareSound, playSignal } from './sound'
 
 type Screen = 'today' | 'victory' | 'photo' | 'zones' | 'profile'
@@ -17,6 +19,9 @@ const NAV: [Screen, string][] = [['today', 'Сегодня'], ['zones', 'Сце�
 
 const readLink = (): Session[] | 'bad' | null =>
   location.hash.startsWith('#restore=') ? decode(location.hash) ?? 'bad' : null
+
+const readCodeLink = () =>
+  cloudEnabled && location.hash.startsWith('#code=') ? readCode(location.hash) ?? 'bad' : null
 
 export function App() {
   const [state, setState] = useState<AppState>(load)
@@ -30,6 +35,37 @@ export function App() {
     ref.current = { ...ref.current, ...patch }
     setState(ref.current)
     setSaveOk(save(ref.current))
+  }, [])
+
+  const [sync, setSync] = useState<SyncStatus>('idle')
+  // Отправляем всё и получаем объединение: повтор безопасен, потерянный ответ не страшен.
+  const doSync = useCallback(async () => {
+    const code = ref.current.cloudCode
+    if (!cloudEnabled || !code) return
+    setSync('saving')
+    try {
+      const remote = await syncSessions(code, ref.current.sessions)
+      if (ref.current.cloudCode !== code) return
+      update({ sessions: mergeSessions(ref.current.sessions, remote) })
+      setSync('saved')
+    } catch (e) {
+      setSync(e instanceof CloudError && e.status === 401 ? 'unknown-code' : 'offline')
+    }
+  }, [update])
+  const count = state.sessions.length
+  useEffect(() => { void doSync() }, [doSync, state.cloudCode, count])
+  useEffect(() => {
+    const retry = () => { if (document.visibilityState === 'visible') void doSync() }
+    window.addEventListener('online', retry)
+    document.addEventListener('visibilitychange', retry)
+    return () => { window.removeEventListener('online', retry); document.removeEventListener('visibilitychange', retry) }
+  }, [doSync])
+
+  const [linkCode, setLinkCode] = useState(readCodeLink)
+  useEffect(() => {
+    const onHash = () => setLinkCode(readCodeLink())
+    window.addEventListener('hashchange', onHash)
+    return () => window.removeEventListener('hashchange', onHash)
   }, [])
 
   useEffect(() => {
@@ -75,13 +111,22 @@ export function App() {
   const closeLink = () => {
     history.replaceState(null, '', location.pathname + location.search)
     setIncoming(null)
+    setLinkCode(null)
   }
 
-  if (incoming === 'bad') return (
+  if (incoming === 'bad' || linkCode === 'bad') return (
     <main>
       <h1>Ссылка пришла не целиком</h1>
       <p>Попробуйте скопировать её ещё раз или восстановить прогресс из файла.</p>
       <button className="primary" onClick={closeLink}>Хорошо</button>
+    </main>
+  )
+  if (linkCode) return (
+    <main>
+      <h1>Подключить автосохранение?</h1>
+      <p>Прогресс из сохранения появится здесь, а сессии с этого устройства добавятся к нему. Открывайте только свою личную ссылку.</p>
+      <button className="primary" onClick={() => { update({ cloudCode: linkCode }); closeLink(); setScreen('profile') }}>Подключить</button>
+      <button onClick={closeLink}>Не сейчас</button>
     </main>
   )
   if (incoming) return (
@@ -107,7 +152,7 @@ export function App() {
                   go('today')
                 }} />
               : screen === 'profile'
-                ? <Profile state={state} update={update} onRestore={restore} />
+                ? <Profile state={state} update={update} onRestore={restore} sync={sync} />
                 : screen === 'photo'
                   ? <Photo onBack={() => go('today')} />
                   : <Today state={state} update={update} onStart={start} onPhoto={() => go('photo')} onScenarios={() => go('zones')} />}

@@ -10,9 +10,9 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
       manifest: {
-        name: 'Микроуборка',
-        short_name: 'Микроуборка',
-        description: 'Порядок без генеральных уборок — по 12–15 минут',
+        name: 'Уборка 15 минут',
+        short_name: 'Уборка 15 мин',
+        description: 'Порядок без генеральных уборок: 5, 12 или 15 минут',
         lang: 'ru',
         display: 'standalone',
         background_color: '#f4f3ec',
