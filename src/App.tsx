@@ -2,14 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { KEY, load, save, parseState, type AppState } from './storage/store'
 import { decode, mergeSessions, type Session } from './domain/progress'
 import { elapsedSec, startTimer } from './domain/timer'
-import { pickTask } from './domain/taskPicker'
+import { pickNext, pickTask } from './domain/taskPicker'
+import { TASKS, type Minutes } from './content/tasks'
 import { Today } from './screens/Today'
 import { Timer } from './screens/Timer'
 import { Victory } from './screens/Victory'
-import { Progress } from './screens/Progress'
+import { Zones } from './screens/Zones'
+import { Profile } from './screens/Profile'
 import { prepareSound, playSignal } from './sound'
 
-type Screen = 'today' | 'victory' | 'progress'
+type Screen = 'today' | 'victory' | 'zones' | 'profile'
+const NAV: [Screen, string][] = [['today', 'Сегодня'], ['zones', 'Сценарии'], ['profile', 'Профиль']]
 
 const readLink = (): Session[] | 'bad' | null =>
   location.hash.startsWith('#restore=') ? decode(location.hash) ?? 'bad' : null
@@ -49,18 +52,19 @@ export function App() {
     const sec = byTimer ? t.durationMs / 1000 : elapsedSec(t, Date.now())
     const sessions = mergeSessions(ref.current.sessions, [{ at: Math.floor(t.startedAt / 1000), sec }])
     const recent = [...ref.current.recent, t.taskId].slice(-10)
-    update({ sessions, recent, timer: null, taskId: pickTask(ref.current.zone, recent, t.taskId).id })
+    update({ sessions, recent, timer: null, zone: null, taskId: pickNext(null, recent, t.taskId).id })
     setLastSec(sec)
     setScreen('victory')
     if (byTimer) playSignal()
   }, [update])
 
-  const start = () => {
+  const start = (minutes: Minutes) => {
     prepareSound()
     // Просим браузер не удалять данные самому при нехватке места.
     navigator.storage?.persist?.().catch(() => {})
-    const s = ref.current
-    update({ timer: startTimer(Date.now(), s.minutes, s.taskId, s.zone) })
+    const { taskId } = ref.current
+    const { zone } = TASKS.find(t => t.id === taskId)!
+    update({ timer: startTimer(Date.now(), minutes, taskId, zone) })
   }
 
   const restore = (s: Session[]) => update({ sessions: mergeSessions(ref.current.sessions, s) })
@@ -80,21 +84,33 @@ export function App() {
     <main>
       <h1>Нашлась копия прогресса</h1>
       <p>Сессий в копии: {incoming.length}. Добавим их к тому, что уже есть здесь. Ничего не сотрётся.</p>
-      <button className="primary" onClick={() => { restore(incoming); closeLink(); setScreen('progress') }}>Восстановить</button>
+      <button className="primary" onClick={() => { restore(incoming); closeLink(); setScreen('profile') }}>Восстановить</button>
       <button onClick={closeLink}>Не сейчас</button>
     </main>
   )
 
   return (
     <>
-      {!saveOk && <p className="notice" role="alert">Браузер не даёт сохранять данные. Сохраните копию на экране «Прогресс», не закрывая вкладку.</p>}
+      {!saveOk && <p className="notice" role="alert">Браузер не даёт сохранять данные. Сохраните копию на экране «Профиль», не закрывая вкладку.</p>}
       {state.timer
         ? <Timer timer={state.timer} onChange={timer => update({ timer })} onFinish={finish} onCancel={() => update({ timer: null })} />
         : screen === 'victory'
-          ? <Victory sec={lastSec} state={state} onHome={() => setScreen('today')} onProgress={() => setScreen('progress')} />
-          : screen === 'progress'
-            ? <Progress state={state} onRestore={restore} onBackedUp={() => update({ backedUp: ref.current.sessions.length })} onHome={() => setScreen('today')} />
-            : <Today state={state} update={update} onStart={start} onProgress={() => setScreen('progress')} />}
+          ? <Victory sec={lastSec} state={state} onHome={() => setScreen('today')} onProfile={() => setScreen('profile')} />
+          : <>
+            {screen === 'zones'
+              ? <Zones onRestart={() => start(5)} onZone={zone => {
+                  update({ zone, taskId: pickTask(zone, ref.current.recent).id })
+                  setScreen('today')
+                  window.scrollTo(0, 0)
+                }} />
+              : screen === 'profile'
+                ? <Profile state={state} update={update} onRestore={restore} />
+                : <Today state={state} update={update} onStart={start} />}
+            <nav aria-label="Разделы">
+              {NAV.map(([id, name]) => <button key={id} aria-current={screen === id ? 'page' : undefined}
+                onClick={() => { setScreen(id); window.scrollTo(0, 0) }}>{name}</button>)}
+            </nav>
+          </>}
     </>
   )
 }

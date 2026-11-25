@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest'
 import { TASKS, ZONES } from '../src/content/tasks'
 import { decode, encode, mergeSessions, plural, summary } from '../src/domain/progress'
 import { elapsedSec, formatLeft, leftMs, pause, resume, startTimer } from '../src/domain/timer'
-import { pickTask } from '../src/domain/taskPicker'
+import { pickNext, pickTask } from '../src/domain/taskPicker'
+import { reminderIcs } from '../src/domain/reminder'
 import { initial, parseState } from '../src/storage/store'
 
 describe('таймер', () => {
@@ -52,6 +53,21 @@ describe('контент', () => {
   it('замена не повторяет текущую и недавние', () => {
     for (let i = 0; i < 100; i++)
       expect(['K1', 'K2', 'K3']).not.toContain(pickTask('kitchen', ['K2', 'K3'], 'K1').id)
+  })
+  it('подбор без выбора меняет зону, выбранная зона сохраняется', () => {
+    for (let i = 0; i < 100; i++) {
+      expect(['kitchen', 'bath']).not.toContain(pickNext(null, ['W1'], 'K1').zone)
+      expect(pickNext('bath', ['W1'], 'W2').zone).toBe('bath')
+    }
+  })
+  it('данные первой версии сохраняются, автозона сбрасывается', () => {
+    const s = parseState(JSON.stringify({ v: 1, zone: 'bath', taskId: 'W2', minutes: 5, sessions: [{ at: 9, sec: 60 }] }))
+    expect(s).toMatchObject({ v: 2, zone: null, taskId: 'W2', minutes: 5, sessions: [{ at: 9, sec: 60 }], remindAt: '19:00' })
+  })
+  it('напоминание: прошедшее сегодня время переносится на завтра', () => {
+    const now = new Date(2026, 10, 30, 20, 0)
+    expect(reminderIcs('19:00', now)).toContain('DTSTART:20261201T190000')
+    expect(reminderIcs('21:05', now)).toContain('DTSTART:20261130T210500')
   })
   it('склонения', () => expect([1, 2, 5, 11, 21].map(n => plural(n, 'а', 'б', 'в')).join('')).toBe('абвва'))
 })
