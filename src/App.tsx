@@ -2,16 +2,17 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { KEY, load, save, parseState, type AppState } from './storage/store'
 import { decode, mergeSessions, type Session } from './domain/progress'
 import { elapsedSec, startTimer } from './domain/timer'
-import { pickNext, pickTask } from './domain/taskPicker'
+import { pickNext } from './domain/taskPicker'
 import { TASKS, type Minutes } from './content/tasks'
 import { Today } from './screens/Today'
 import { Timer } from './screens/Timer'
 import { Victory } from './screens/Victory'
+import { Photo } from './screens/Photo'
 import { Zones } from './screens/Zones'
 import { Profile } from './screens/Profile'
 import { prepareSound, playSignal } from './sound'
 
-type Screen = 'today' | 'victory' | 'zones' | 'profile'
+type Screen = 'today' | 'victory' | 'photo' | 'zones' | 'profile'
 const NAV: [Screen, string][] = [['today', 'Сегодня'], ['zones', 'Сценарии'], ['profile', 'Профиль']]
 
 const readLink = (): Session[] | 'bad' | null =>
@@ -52,9 +53,10 @@ export function App() {
     const sec = byTimer ? t.durationMs / 1000 : elapsedSec(t, Date.now())
     const sessions = mergeSessions(ref.current.sessions, [{ at: Math.floor(t.startedAt / 1000), sec }])
     const recent = [...ref.current.recent, t.taskId].slice(-10)
-    update({ sessions, recent, timer: null, zone: null, taskId: pickNext(null, recent, t.taskId).id })
+    update({ sessions, recent, timer: null, zone: null, taskId: pickNext(ref.current.home, null, recent, t.taskId).id })
     setLastSec(sec)
     setScreen('victory')
+    window.scrollTo(0, 0)
     if (byTimer) playSignal()
   }, [update])
 
@@ -64,9 +66,11 @@ export function App() {
     navigator.storage?.persist?.().catch(() => {})
     const { taskId } = ref.current
     const { zone } = TASKS.find(t => t.id === taskId)!
+    window.scrollTo(0, 0)
     update({ timer: startTimer(Date.now(), minutes, taskId, zone) })
   }
 
+  const go = (s: Screen) => { setScreen(s); window.scrollTo(0, 0) }
   const restore = (s: Session[]) => update({ sessions: mergeSessions(ref.current.sessions, s) })
   const closeLink = () => {
     history.replaceState(null, '', location.pathname + location.search)
@@ -93,22 +97,23 @@ export function App() {
     <>
       {!saveOk && <p className="notice" role="alert">Браузер не даёт сохранять данные. Сохраните копию на экране «Профиль», не закрывая вкладку.</p>}
       {state.timer
-        ? <Timer timer={state.timer} onChange={timer => update({ timer })} onFinish={finish} onCancel={() => update({ timer: null })} />
+        ? <Timer timer={state.timer} home={state.home} onChange={timer => update({ timer })} onFinish={finish} onCancel={() => update({ timer: null })} />
         : screen === 'victory'
           ? <Victory sec={lastSec} state={state} onHome={() => setScreen('today')} onProfile={() => setScreen('profile')} />
           : <>
             {screen === 'zones'
-              ? <Zones onRestart={() => start(5)} onZone={zone => {
-                  update({ zone, taskId: pickTask(zone, ref.current.recent).id })
-                  setScreen('today')
-                  window.scrollTo(0, 0)
+              ? <Zones home={state.home} onRestart={() => start(5)} onZone={zone => {
+                  update({ zone, taskId: pickNext(ref.current.home, zone, ref.current.recent).id })
+                  go('today')
                 }} />
               : screen === 'profile'
                 ? <Profile state={state} update={update} onRestore={restore} />
-                : <Today state={state} update={update} onStart={start} />}
+                : screen === 'photo'
+                  ? <Photo onBack={() => go('today')} />
+                  : <Today state={state} update={update} onStart={start} onPhoto={() => go('photo')} onScenarios={() => go('zones')} />}
             <nav aria-label="Разделы">
               {NAV.map(([id, name]) => <button key={id} aria-current={screen === id ? 'page' : undefined}
-                onClick={() => { setScreen(id); window.scrollTo(0, 0) }}>{name}</button>)}
+                onClick={() => go(id)}>{name}</button>)}
             </nav>
           </>}
     </>

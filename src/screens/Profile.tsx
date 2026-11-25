@@ -1,5 +1,8 @@
 import { useState } from 'react'
 import { decode, encode, plural, summary, type Session } from '../domain/progress'
+import { HOMES, fits } from '../content/home'
+import { TASKS } from '../content/tasks'
+import { pickNext } from '../domain/taskPicker'
 import { reminderIcs } from '../domain/reminder'
 import { downloadText } from '../download'
 import type { AppState } from '../storage/store'
@@ -47,6 +50,15 @@ export function Profile({ state, update, onRestore }: Props) {
         <p className="muted">{s.days} {plural(s.days, 'день', 'дня', 'дней')} заботы о доме. Всего сессий: {s.total}.</p>
       </section>}
 
+      <h2>Моя квартира</h2>
+      <div className="chips" role="group" aria-label="Моя квартира">
+        {HOMES.map(h => <button key={h.id} aria-pressed={h.id === state.home} onClick={() => {
+          const task = TASKS.find(t => t.id === state.taskId)!
+          update({ home: h.id, zone: null, taskId: fits(task, h.id, null) ? task.id : pickNext(h.id, null, state.recent).id })
+        }}>{h.name}</button>)}
+      </div>
+      <p className="muted">Подберём задачи и названия мест под ваш дом.</p>
+
       <h2>Режим без вины</h2>
       <label className="check">
         <input type="checkbox" checked={state.guiltFree} onChange={e => update({ guiltFree: e.target.checked })} />
@@ -54,15 +66,16 @@ export function Profile({ state, update, onRestore }: Props) {
       </label>
       <p className="muted">Пропуски здесь никогда не обнуляют прогресс.</p>
 
-      <h2>Мягкое напоминание</h2>
+      <h2>Напоминания в календарь</h2>
+      <p className="muted">Добавим 14 дней, в каждом готовое действие. Открывать приложение не понадобится.</p>
       <label className="field">Время
         <input type="time" required value={state.remindAt} onChange={e => e.target.value && update({ remindAt: e.target.value })} />
       </label>
       <button onClick={() => {
-        downloadText('napominanie.ics', reminderIcs(state.remindAt, new Date()), 'text/calendar')
-        setReminderMsg('Откройте скачанный файл, чтобы добавить напоминание в календарь.')
+        downloadText('napominanie.ics', reminderIcs(state.remindAt, new Date(), state), 'text/calendar')
+        setReminderMsg('Откройте скачанный файл, чтобы добавить дни в календарь. Повторите через две недели.')
       }}>Добавить в календарь</button>
-      <p className="muted" role="status">{reminderMsg || 'Раз в день. Изменить или отключить можно в самом календаре.'}</p>
+      <p className="muted" role="status">{reminderMsg || 'Раз в день. Любой день можно удалить в самом календаре.'}</p>
 
       {state.sessions.length > 0 && <>
         <h2>Сохранить копию прогресса</h2>

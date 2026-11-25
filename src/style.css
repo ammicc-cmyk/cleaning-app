@@ -33,3 +33,16 @@ nav [aria-current] { color:var(--ink); font-weight:600; background:var(--card); 
 .check { display:flex; align-items:center; gap:12px; min-height:48px; }
 .check input { width:24px; height:24px; accent-color:var(--accent); flex:none; }
 input[type=time] { min-height:48px; padding:8px 12px; border:1px solid var(--line); border-radius:12px; background:var(--card); color:var(--ink); }
+.place { display:flex; align-items:baseline; gap:10px; font-size:19px; }
+.center .place { justify-content:center; }
+.place span { color:var(--muted); font-size:15px; }
+.place b { color:var(--accent); }
+.rows { display:grid; gap:8px; }
+.rows button { display:flex; justify-content:space-between; align-items:center; }
+.rows small { color:var(--muted); }
+summary { cursor:pointer; min-height:32px; font-weight:600; }
+summary:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
+details .chips { margin-top:12px; }
+dl { margin:8px 0 0; display:grid; gap:12px; }
+dt { font-weight:600; }
+dd { margin:0; color:var(--muted); font-size:15px; }

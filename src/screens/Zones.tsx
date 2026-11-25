@@ -1,35 +1,34 @@
-import { ZONES, type ZoneId } from '../content/tasks'
+import type { ZoneId } from '../content/tasks'
+import { places, type HomeId } from '../content/home'
 
-// Шаги платных сценариев сюда не добавляем: репозиторий и сборка публичны.
-const SOON = [
-  { name: 'Гости скоро', about: 'Что заметно с порога, если есть полчаса.' },
-  { name: 'После тяжёлой недели', about: 'Бережный разбор завала короткими шагами.' },
-]
+// Содержание платного сюда не добавляем: репозиторий и сборка публичны.
+const PRO = [
+  ['Сценарии', 'Гости скоро, после тяжёлой недели, перед отпуском'],
+  ['Программы', '7–14 спокойных дней, первые 2 дня бесплатно'],
+  ['Подборки', 'Пятна, запахи, кухня'],
+] as const
 
-interface Props { onZone: (z: ZoneId) => void; onRestart: () => void }
+interface Props { home: HomeId | null; onZone: (z: ZoneId) => void; onRestart: () => void }
 
-export function Zones({ onZone, onRestart }: Props) {
+export function Zones({ home, onZone, onRestart }: Props) {
   return (
     <main className="with-nav">
-      <h1>Зоны и сценарии</h1>
-      <p className="muted">Сюда заходить необязательно: на главной всё уже подобрано.</p>
-      <h2>Сценарии</h2>
+      <h1>Сценарии</h1>
       <section className="card stack">
         <p className="task">Быстрый перезапуск</p>
         <p className="muted">Одно лёгкое действие на 5 минут. Подойдёт после любого перерыва.</p>
         <button className="primary" onClick={onRestart}>Начать 5 минут</button>
       </section>
-      {SOON.map(s => (
-        <section className="card stack" key={s.name}>
-          <p className="task">{s.name}</p>
-          <p className="muted">{s.about}</p>
-          <p className="muted">Скоро в PRO</p>
-        </section>
-      ))}
-      <h2>Если хочется выбрать зону</h2>
-      <div className="chips">
-        {ZONES.map(z => <button key={z.id} onClick={() => onZone(z.id)}>{z.name}</button>)}
-      </div>
+      <details className="card">
+        <summary>Скоро в PRO</summary>
+        <dl>{PRO.map(([name, about]) => <div key={name}><dt>{name}</dt><dd>{about}</dd></div>)}</dl>
+      </details>
+      <details className="card">
+        <summary>Выбрать место самому</summary>
+        <div className="chips">
+          {places(home).map(p => <button key={p.zone} onClick={() => onZone(p.zone)}>{p.name}</button>)}
+        </div>
+      </details>
     </main>
   )
 }

@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react'
 import { TASKS, taskText } from '../content/tasks'
+import { placeName, type HomeId } from '../content/home'
 import { formatLeft, leftMs, pause, resume, type ActiveTimer } from '../domain/timer'
 
 interface Props {
   timer: ActiveTimer
+  home: HomeId | null
   onChange: (t: ActiveTimer) => void
   onFinish: (byTimer: boolean) => void
   onCancel: () => void
 }
 
-export function Timer({ timer, onChange, onFinish, onCancel }: Props) {
+export function Timer({ timer, home, onChange, onFinish, onCancel }: Props) {
   const [now, setNow] = useState(Date.now)
   const paused = timer.pausedLeftMs !== null
 
@@ -46,6 +48,7 @@ export function Timer({ timer, onChange, onFinish, onCancel }: Props) {
   return (
     <main className="center">
       <p className="clock" role="timer">{formatLeft(leftMs(timer, now))}</p>
+      <p className="place"><span>Где</span> <b>{placeName(task.zone, home)}</b></p>
       <section className="card"><p className="task">{taskText(task, timer.minutes)}</p></section>
       <p className="muted">По сигналу можно остановиться, даже если не всё готово. Если экран погаснет, звука может не быть, но время не собьётся.</p>
       <button className="primary" onClick={() => onFinish(false)}>Готово раньше</button>

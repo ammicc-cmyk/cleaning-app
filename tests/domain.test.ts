@@ -1,8 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { TASKS, ZONES } from '../src/content/tasks'
+import { TASKS } from '../src/content/tasks'
 import { decode, encode, mergeSessions, plural, summary } from '../src/domain/progress'
 import { elapsedSec, formatLeft, leftMs, pause, resume, startTimer } from '../src/domain/timer'
-import { pickNext, pickTask } from '../src/domain/taskPicker'
+import { placeName, places } from '../src/content/home'
+import { pickNext } from '../src/domain/taskPicker'
 import { reminderIcs } from '../src/domain/reminder'
 import { initial, parseState } from '../src/storage/store'
 
@@ -46,28 +47,36 @@ describe('копия прогресса', () => {
 })
 
 describe('контент', () => {
-  it('по 9 задач в зоне, id уникальны', () => {
-    for (const z of ZONES) expect(TASKS.filter(t => t.zone === z.id)).toHaveLength(9)
-    expect(new Set(TASKS.map(t => t.id)).size).toBe(36)
+  it('42 задачи, id уникальны', () => {
+    expect(TASKS).toHaveLength(42)
+    expect(new Set(TASKS.map(t => t.id)).size).toBe(42)
   })
-  it('замена не повторяет текущую и недавние', () => {
-    for (let i = 0; i < 100; i++)
-      expect(['K1', 'K2', 'K3']).not.toContain(pickTask('kitchen', ['K2', 'K3'], 'K1').id)
+  it('квартира задаёт места: студия и одна комната без повторов', () => {
+    expect(places('studio').map(p => p.name)).toEqual(['Кухонная зона', 'Прихожая', 'Комната', 'Рабочий стол', 'Ванная'])
+    expect(places('two')).toEqual(places(null))
+    expect(places('three').at(-1)!.name).toBe('Ещё одна комната')
   })
-  it('подбор без выбора меняет зону, выбранная зона сохраняется', () => {
-    for (let i = 0; i < 100; i++) {
-      expect(['kitchen', 'bath']).not.toContain(pickNext(null, ['W1'], 'K1').zone)
-      expect(pickNext('bath', ['W1'], 'W2').zone).toBe('bath')
+  it('подбор меняет место, а выбранное место сохраняет', () => {
+    for (const home of [null, 'studio', 'one', 'two', 'three'] as const) for (let i = 0; i < 200; i++) {
+      const next = pickNext(home, null, ['L4'], 'K1')
+      expect([placeName('kitchen', home), placeName('living', home), null]).not.toContain(placeName(next.zone, home))
+      expect(pickNext(home, 'desk', ['B3'], 'B3').id).toBe('B4')
     }
   })
   it('данные первой версии сохраняются, автозона сбрасывается', () => {
     const s = parseState(JSON.stringify({ v: 1, zone: 'bath', taskId: 'W2', minutes: 5, sessions: [{ at: 9, sec: 60 }] }))
     expect(s).toMatchObject({ v: 2, zone: null, taskId: 'W2', minutes: 5, sessions: [{ at: 9, sec: 60 }], remindAt: '19:00' })
   })
-  it('напоминание: прошедшее сегодня время переносится на завтра', () => {
+  it('напоминания: 14 дней с задачами, прошедшее время переносится, строки до 75 байт', () => {
     const now = new Date(2026, 10, 30, 20, 0)
-    expect(reminderIcs('19:00', now)).toContain('DTSTART:20261201T190000')
-    expect(reminderIcs('21:05', now)).toContain('DTSTART:20261130T210500')
+    const o = { home: 'studio', minutes: 12, recent: [] } as const
+    const ics = reminderIcs('19:00', now, { ...o, recent: [] })
+    expect(ics.match(/BEGIN:VEVENT/g)).toHaveLength(14)
+    expect(ics).toContain('DTSTART:20261201T190000')
+    expect(ics).toContain('DTSTART:20261214T190000')
+    expect(reminderIcs('21:05', now, { ...o, recent: [] })).toContain('DTSTART:20261130T210500')
+    for (const line of ics.split('\r\n')) expect(new TextEncoder().encode(line).length).toBeLessThanOrEqual(75)
+    expect(ics.replace(/\r\n /g, '')).toMatch(/SUMMARY:[А-Яа-я ]+\\, 12 мин: /)
   })
   it('склонения', () => expect([1, 2, 5, 11, 21].map(n => plural(n, 'а', 'б', 'в')).join('')).toBe('абвва'))
 })
