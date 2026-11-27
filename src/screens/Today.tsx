@@ -43,8 +43,9 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
         <div aria-live="polite" className="stack">
           <p className="muted">{placeName(first.zone, state.home)}, около {first.min} мин</p>
           <p className="task">{first.text}</p>
+          {plan.length > 1 && <p className="muted">Дело 1 из {plan.length} · всего около {total} мин. Следующее появится после «Готово».</p>}
         </div>
-        <button className="start" onClick={() => onStart(state.minutes)}>Запустить таймер</button>
+        <button className="start" onClick={() => onStart(state.minutes)}>Запустить таймер на {state.minutes} мин</button>
         {away && state.minutes !== 5 && <button onClick={() => onStart(5, 'routine')}>Начать с 5 минут</button>}
         <button className="link" onClick={() => update({ skipped: skip(state, first.id, state.minutes, now) })}>Заменить задачу</button>
       </section>
