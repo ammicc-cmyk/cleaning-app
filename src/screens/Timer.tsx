@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { taskById } from '../content/tasks'
 import { placeName, type HomeId } from '../content/home'
 import { formatLeft, leftMs, pause, resume, type ActiveTimer } from '../domain/timer'
+import working from '../assets/minutka/minutka-work.svg'
 
 interface Props {
   timer: ActiveTimer
@@ -49,14 +50,19 @@ export function Timer({ timer, home, onChange, onFinish, onStep, onCancel }: Pro
   const last = timer.i === timer.plan.length - 1
   return (
     <main className="center">
-      <p className="clock" role="timer">{formatLeft(leftMs(timer, now))}</p>
-      <p className="place"><span>Где</span> <b>{placeName(task.zone, home)}</b></p>
-      <section className="card stack" aria-live="polite">
-        <p className="task">{task.text}</p>
-        <p className="muted">Около {task.min} мин. Дело {timer.i + 1} из {timer.plan.length}.</p>
+      <section className="focus">
+        <div className="focus-head">
+          <img className="helper small" src={working} alt="" />
+          <p className="place"><span>Где</span> <b>{placeName(task.zone, home)}</b></p>
+        </div>
+        <p className="clock" role="timer">{formatLeft(leftMs(timer, now))}</p>
+        <div className="stack" aria-live="polite">
+          <p className="task">{task.text}</p>
+          <p className="muted">Около {task.min} мин. Дело {timer.i + 1} из {timer.plan.length}.</p>
+        </div>
+        <button className="start" onClick={() => onStep(true)}>{last ? 'Готово' : 'Готово, дальше'}</button>
+        <button className="link" onClick={() => onStep(false)}>Пропустить</button>
       </section>
-      <button className="primary" onClick={() => onStep(true)}>{last ? 'Готово' : 'Готово, дальше'}</button>
-      <button onClick={() => onStep(false)}>Пропустить</button>
       <p className="muted">По сигналу можно остановиться, даже если не всё готово. Если экран погаснет, звука может не быть, но время не собьётся.</p>
       <button onClick={() => { const n = Date.now(); setNow(n); onChange(paused ? resume(timer, n) : pause(timer, n)) }}>{paused ? 'Продолжить' : 'Пауза'}</button>
       <button onClick={() => onFinish(false)}>Хватит на сегодня</button>

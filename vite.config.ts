@@ -18,7 +18,7 @@ function csp(): Plugin {
         tag: 'meta', injectTo: 'head-prepend',
         attrs: {
           'http-equiv': 'Content-Security-Policy',
-          content: "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; "
+          content: "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; "
             + `manifest-src 'self'; worker-src 'self'; connect-src 'self'${api}; base-uri 'none'; form-action 'none'`,
         },
       },
@@ -34,6 +34,8 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['icon.svg'],
+      // Шрифты нужны и без сети: кэшируем кириллицу и латиницу, редкие наборы грузятся по требованию.
+      workbox: { globPatterns: ['**/*.{js,css,html,svg}', '**/*-{cyrillic,latin}-wght-normal-*.woff2'] },
       manifest: {
         name: 'Уборка 15 минут',
         short_name: 'Уборка 15 мин',

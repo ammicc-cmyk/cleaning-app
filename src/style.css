@@ -1,7 +1,32 @@
-:root { --bg:#f4f3ec; --card:#fff; --ink:#26332d; --muted:#5d6b64; --accent:#3d6b5a; --on:#fff; --line:#d5d8cf; color-scheme: light dark; }
-@media (prefers-color-scheme: dark) { :root { --bg:#19211d; --card:#232d28; --ink:#e8ece5; --muted:#a5b3ab; --accent:#8cc0a9; --on:#14201a; --line:#3a4840; } }
+/* Фирменный стиль «Четверть часа»: шалфей + абрикос, тёмная карточка фокуса для задачи и таймера. */
+:root {
+  --bg:#f4f3ec; --card:#fff; --ink:#26332d; --muted:#5d6b64; --accent:#3d6b5a; --on:#fff; --line:#d5d8cf;
+  --soft:#e3ece5; --focus:#26332d; --on-focus:#f4f3ec; --on-focus-muted:#b8c7bf; --focus-line:#26332d;
+  --apricot:#f0b48a; --on-apricot:#26332d; --apricot-ink:#8a4b22;
+  --font-display:"Nunito Variable", "Onest Variable", system-ui, sans-serif;
+  --font-text:"Onest Variable", system-ui, sans-serif;
+  color-scheme: light dark;
+}
+@media (prefers-color-scheme: dark) { :root {
+  --bg:#151c19; --card:#1f2924; --ink:#e8ece5; --muted:#a5b3ab; --accent:#8cc0a9; --on:#14201a; --line:#34423b;
+  --soft:#26352e; --focus:#2b3a33; --focus-line:#3f5047; --apricot-ink:#f0c09c;
+} }
 * { box-sizing: border-box; }
-body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.5 system-ui,sans-serif; }
+body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.5 var(--font-text); }
+h1, h2, .clock { font-family:var(--font-display); }
+h1, h2 { font-weight:800; }
+.focus { background:var(--focus); color:var(--on-focus); border:1px solid var(--focus-line); border-radius:24px; padding:24px; display:grid; gap:12px; box-shadow:0 1px 2px rgba(38,51,45,.06), 0 6px 20px rgba(38,51,45,.08); }
+.focus .muted, .focus .place span { color:var(--on-focus-muted); }
+.focus .place b { color:var(--apricot); }
+.focus .clock { margin:4px 0; }
+.focus button { background:transparent; border-color:var(--on-focus-muted); color:var(--on-focus); }
+.focus .start { background:var(--apricot); border-color:var(--apricot); color:var(--on-apricot); min-height:56px; font-weight:600; font-size:18px; }
+.focus .link { border-color:transparent; color:var(--on-focus-muted); }
+.focus button:focus-visible { outline-color:var(--on-focus); }
+.helper { display:block; width:128px; height:128px; margin:0 auto; }
+.helper.small { width:56px; height:56px; margin:0; }
+.focus-head { display:flex; align-items:center; gap:12px; }
+.gain { color:var(--apricot-ink); }
 main { max-width:480px; min-height:100dvh; margin:auto; padding:calc(24px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom)); display:flex; flex-direction:column; gap:14px; }
 .center { justify-content:center; text-align:center; }
 h1 { font-size:28px; line-height:1.2; margin:0; text-wrap:balance; }

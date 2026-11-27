@@ -5,6 +5,8 @@ import { TIPS } from '../content/tips'
 import { buildPlan, focusInfo, skip } from '../domain/planner'
 import { plural } from '../domain/progress'
 import type { AppState } from '../storage/store'
+import hello from '../assets/minutka/minutka-hello.svg'
+import welcomeBack from '../assets/minutka/minutka-return.svg'
 
 interface Props {
   state: AppState; update: (p: Partial<AppState>) => void
@@ -25,6 +27,7 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
   const next = nextWeekZone(week.zone, state.home)
   return (
     <main className="with-nav">
+      {(!last || away) && <img className="helper" src={!last ? hello : welcomeBack} alt="" />}
       <h1>{!last ? 'Порядок без генеральных уборок' : away ? 'Рады вас видеть' : 'На сегодня'}</h1>
       <p className="muted">{!last ? 'Выбирать ничего не нужно: немного рутины, одно место на неделю и остановка по сигналу.'
         : away ? 'Начнём с лёгкого? Пяти минут вполне достаточно.' : 'Сделайте, сколько получится. Остановиться можно в любой момент.'}</p>
@@ -36,13 +39,15 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
       </section>}
       <p className="place"><span>Место недели</span> <b>{name}</b></p>
       {!state.guiltFree && week.done > 0 && !week.weekOver && !week.allDone && <p className="muted">Сделано дел: {week.done} из {week.total}</p>}
-      <section className="card stack" aria-live="polite">
-        <p className="muted">{placeName(first.zone, state.home)}, около {first.min} мин</p>
-        <p className="task">{first.text}</p>
+      <section className="focus">
+        <div aria-live="polite" className="stack">
+          <p className="muted">{placeName(first.zone, state.home)}, около {first.min} мин</p>
+          <p className="task">{first.text}</p>
+        </div>
+        <button className="start" onClick={() => onStart(state.minutes)}>Запустить таймер</button>
+        {away && state.minutes !== 5 && <button onClick={() => onStart(5, 'routine')}>Начать с 5 минут</button>}
+        <button className="link" onClick={() => update({ skipped: skip(state, first.id, state.minutes, now) })}>Заменить задачу</button>
       </section>
-      <button className="primary" onClick={() => onStart(state.minutes)}>Запустить таймер</button>
-      {away && state.minutes !== 5 && <button onClick={() => onStart(5, 'routine')}>Начать с 5 минут</button>}
-      <button onClick={() => update({ skipped: skip(state, first.id, state.minutes, now) })}>Заменить задачу</button>
       <div className="segments" role="group" aria-label="Длительность">
         {([5, 12, 15] as Minutes[]).map(m => <button key={m} aria-pressed={m === state.minutes} onClick={() => update({ minutes: m })}>{m} мин</button>)}
       </div>
