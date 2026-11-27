@@ -33,7 +33,7 @@ export default defineConfig({
     csp(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['icon.svg'],
+      includeAssets: ['icon.svg', 'apple-touch-icon.png'],
       // Шрифты нужны и без сети: кэшируем кириллицу и латиницу, редкие наборы грузятся по требованию.
       workbox: { globPatterns: ['**/*.{js,css,html,svg}', '**/*-{cyrillic,latin}-wght-normal-*.woff2'] },
       manifest: {
@@ -44,7 +44,12 @@ export default defineConfig({
         display: 'standalone',
         background_color: '#f4f3ec',
         theme_color: '#f4f3ec',
-        icons: [{ src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' }],
+        icons: [
+          { src: 'icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any' },
+          // Квадрат без скругления: система сама обрежет его по форме своей иконки.
+          { src: 'icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+          { src: 'icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' },
+        ],
       },
     }),
   ],

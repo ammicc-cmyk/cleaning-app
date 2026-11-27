@@ -1,6 +1,7 @@
 import type { ZoneId } from '../content/tasks'
 import { weekPlaces } from '../content/home'
 import { ZONE_ART } from '../content/zoneArt'
+import tired from '../assets/minutka/minutka-tired.svg'
 import { focusZone } from '../domain/planner'
 import type { AppState } from '../storage/store'
 
@@ -19,6 +20,7 @@ export function Zones({ state, onZone, onRestart }: Props) {
     <main className="with-nav">
       <h1>Сценарии</h1>
       <section className="card stack">
+        <img className="helper" src={tired} alt="" />
         <p className="task">Быстрый перезапуск</p>
         <p className="muted">Несколько лёгких дел на 5 минут. Можно остановиться после первого.</p>
         <button className="primary" onClick={onRestart}>Начать 5 минут</button>

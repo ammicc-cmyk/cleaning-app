@@ -14,6 +14,7 @@ import { Profile } from './screens/Profile'
 import type { SyncStatus } from './screens/Autosave'
 import { CloudError, cloudEnabled, readCode, syncSessions } from './storage/cloud'
 import { prepareSound, playSignal } from './sound'
+import { NavIcon } from './NavIcon'
 
 type Screen = 'today' | 'victory' | 'photo' | 'zones' | 'profile'
 const NAV: [Screen, string][] = [['today', 'Сегодня'], ['zones', 'Сценарии'], ['profile', 'Профиль']]
@@ -180,7 +181,7 @@ export function App() {
                   : <Today state={state} update={update} onStart={start} onZone={setFocus} onPhoto={() => go('photo')} onScenarios={() => go('zones')} />}
             <nav aria-label="Разделы">
               {NAV.map(([id, name]) => <button key={id} aria-current={screen === id ? 'page' : undefined}
-                onClick={() => go(id)}>{name}</button>)}
+                onClick={() => go(id)}><NavIcon name={id === 'zones' ? 'zones' : id === 'profile' ? 'profile' : 'today'} />{name}</button>)}
             </nav>
           </>}
     </>
