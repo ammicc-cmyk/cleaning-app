@@ -44,6 +44,9 @@ button:focus-visible, textarea:focus-visible { outline:3px solid var(--accent); 
 .primary { min-height:56px; font-weight:600; }
 .link { background:none; border-color:transparent; color:var(--muted); text-decoration:underline; }
 .chips { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.places button { display:grid; justify-items:center; gap:8px; padding:14px 10px; border-radius:16px; font-size:15px; line-height:1.3; }
+.places img { width:56px; height:56px; }
+.places [aria-pressed=true] { background:var(--soft); border-color:var(--accent); color:var(--ink); font-weight:600; }
 .segments { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
 .field { display:grid; gap:6px; color:var(--muted); font-size:15px; }
 textarea { width:100%; padding:10px; border:1px solid var(--line); border-radius:12px; background:var(--card); }
