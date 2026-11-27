@@ -1,5 +1,6 @@
 import type { ZoneId } from '../content/tasks'
 import { weekPlaces } from '../content/home'
+import { ZONE_ART } from '../content/zoneArt'
 import { focusZone } from '../domain/planner'
 import type { AppState } from '../storage/store'
 
@@ -25,9 +26,9 @@ export function Zones({ state, onZone, onRestart }: Props) {
       <section className="card stack">
         <p className="task">Место недели</p>
         <p className="muted">Места идут по кругу. Можно выбрать любое: сделанное не потеряется.</p>
-        <div className="chips">
+        <div className="chips places">
           {weekPlaces(state.home).map(p => <button key={p.zone} aria-pressed={p.zone === current}
-            onClick={() => { if (p.zone !== current) onZone(p.zone) }}>{p.name}</button>)}
+            onClick={() => { if (p.zone !== current) onZone(p.zone) }}><img src={ZONE_ART[p.zone]} alt="" />{p.name}</button>)}
         </div>
       </section>
       <details className="card">
