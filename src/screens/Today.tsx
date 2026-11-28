@@ -12,10 +12,10 @@ import welcomeBack from '../assets/minutka/minutka-return.svg'
 interface Props {
   state: AppState; update: (p: Partial<AppState>) => void
   onStart: (m: Minutes, mode?: 'auto' | 'routine') => void
-  onZone: (z: ZoneId) => void; onPhoto: () => void; onScenarios: () => void
+  onZone: (z: ZoneId) => void; onPro: () => void
 }
 
-export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: Props) {
+export function Today({ state, update, onStart, onZone, onPro }: Props) {
   const [tip, setTip] = useState(() => Math.floor(Date.now() / 86_400_000) % TIPS.length)
   const now = Date.now()
   const last = state.sessions.at(-1)
@@ -64,8 +64,7 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
         <button className="link" onClick={() => setTip((tip + 1) % TIPS.length)}>Ещё подсказка</button>
       </section>
       {last && <div className="rows">
-        <button onClick={onPhoto}><span>Разбор по фото</span><small>скоро</small></button>
-        <button onClick={onScenarios}><span>Сценарии и программы</span><small>PRO</small></button>
+        <button onClick={onPro}><span>Что будет в Pro</span><small>скоро</small></button>
       </div>}
     </main>
   )

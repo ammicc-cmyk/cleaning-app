@@ -8,9 +8,9 @@ import { cloudEnabled } from '../storage/cloud'
 import { downloadText } from '../download'
 import type { AppState } from '../storage/store'
 
-interface Props { state: AppState; update: (p: Partial<AppState>) => void; onRestore: (b: Backup) => void; sync: SyncStatus }
+interface Props { state: AppState; update: (p: Partial<AppState>) => void; onRestore: (b: Backup) => void; sync: SyncStatus; onPro: () => void }
 
-export function Profile({ state, update, onRestore, sync }: Props) {
+export function Profile({ state, update, onRestore, sync, onPro }: Props) {
   const [text, setText] = useState('')
   const [msg, setMsg] = useState('')
   const [reminderMsg, setReminderMsg] = useState('')
@@ -96,6 +96,9 @@ export function Profile({ state, update, onRestore, sync }: Props) {
 
       <h2>PRO</h2>
       <p className="muted">Пока не подключён. Всё, что сейчас работает, бесплатно.</p>
+      <div className="rows">
+        <button onClick={onPro}><span>Что будет в Pro</span><small>скоро</small></button>
+      </div>
     </main>
   )
 }

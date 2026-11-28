@@ -69,6 +69,10 @@ input[type=time] { min-height:48px; padding:8px 12px; border:1px solid var(--lin
 .rows { display:grid; gap:8px; }
 .rows button { display:flex; justify-content:space-between; align-items:center; }
 .rows small { color:var(--muted); }
+.pro-head { display:flex; justify-content:space-between; align-items:baseline; gap:12px; font-size:19px; margin:0; }
+.pro-main { border:2px solid var(--apricot); }
+.pro-main .pro-head { font-size:21px; }
+.soon {font-size:13px; font-weight:600; padding:1px 10px; border-radius:999px; background:var(--soft); color:var(--accent); }
 summary { cursor:pointer; min-height:32px; font-weight:600; }
 summary:focus-visible { outline:3px solid var(--accent); outline-offset:4px; }
 details .chips { margin-top:12px; }

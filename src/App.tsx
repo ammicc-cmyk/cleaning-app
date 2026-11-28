@@ -8,7 +8,7 @@ import { taskById, type Minutes, type ZoneId } from './content/tasks'
 import { Today } from './screens/Today'
 import { Timer } from './screens/Timer'
 import { Victory, type Result } from './screens/Victory'
-import { Photo } from './screens/Photo'
+import { Pro } from './screens/Pro'
 import { Zones } from './screens/Zones'
 import { Profile } from './screens/Profile'
 import type { SyncStatus } from './screens/Autosave'
@@ -16,7 +16,7 @@ import { CloudError, cloudEnabled, readCode, syncSessions } from './storage/clou
 import { prepareSound, playSignal } from './sound'
 import { NavIcon } from './NavIcon'
 
-type Screen = 'today' | 'victory' | 'photo' | 'zones' | 'profile'
+type Screen = 'today' | 'victory' | 'pro' | 'zones' | 'profile'
 const NAV: [Screen, string][] = [['today', 'Сегодня'], ['zones', 'Сценарии'], ['profile', 'Профиль']]
 
 const readLink = (): Backup | 'bad' | null =>
@@ -129,6 +129,8 @@ export function App() {
   const setFocus = (zone: ZoneId) => update({ focus: { zone, since: Math.floor(Date.now() / 1000) } })
 
   const go = (s: Screen) => { setScreen(s); window.scrollTo(0, 0) }
+  const [proFrom, setProFrom] = useState<Screen>('today')
+  const openPro = () => { setProFrom(screen); go('pro') }
   const restore = (b: Backup) => {
     const c = ref.current
     // Место недели из копии берём, только если своего ещё нет.
@@ -173,12 +175,12 @@ export function App() {
           ? <Victory result={result} state={state} onMark={id => { update({ done: markDone(id) }); setResult(r => ({ ...r, done: [...r.done, id], pending: null })) }} onHome={() => setScreen('today')} />
           : <>
             {screen === 'zones'
-              ? <Zones state={state} onRestart={() => start(5, 'routine')} onZone={zone => { setFocus(zone); go('today') }} />
+              ? <Zones state={state} onRestart={() => start(5, 'routine')} onZone={zone => { setFocus(zone); go('today') }} onPro={openPro} />
               : screen === 'profile'
-                ? <Profile state={state} update={update} onRestore={restore} sync={sync} />
-                : screen === 'photo'
-                  ? <Photo onBack={() => go('today')} />
-                  : <Today state={state} update={update} onStart={start} onZone={setFocus} onPhoto={() => go('photo')} onScenarios={() => go('zones')} />}
+                ? <Profile state={state} update={update} onRestore={restore} sync={sync} onPro={openPro} />
+                : screen === 'pro'
+                  ? <Pro onBack={() => go(proFrom)} />
+                  : <Today state={state} update={update} onStart={start} onZone={setFocus} onPro={openPro} />}
             <nav aria-label="Разделы">
               {NAV.map(([id, name]) => <button key={id} aria-current={screen === id ? 'page' : undefined}
                 onClick={() => go(id)}><NavIcon name={id === 'zones' ? 'zones' : id === 'profile' ? 'profile' : 'today'} />{name}</button>)}
