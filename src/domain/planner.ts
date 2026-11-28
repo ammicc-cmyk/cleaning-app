@@ -47,6 +47,12 @@ function take(from: Task[], budget: number): Task[] {
   return out
 }
 
+/** Дела одного места подряд, чтобы не ходить туда-обратно. Место недели в конце: за ним идут его большие дела. */
+function byPlace(list: Task[], home: HomeId | null, last: ZoneId): Task[] {
+  const places = [...new Set(list.map(t => weekZone(t.zone, home)))].sort((a, b) => Number(a === last) - Number(b === last))
+  return places.flatMap(p => list.filter(t => weekZone(t.zone, home) === p))
+}
+
 /** Дела на одну сессию: сначала короткая рутина, затем место недели. */
 export function buildPlan(s: PlanState, minutes: Minutes, now: number, mode: 'auto' | 'routine' = 'auto'): Task[] {
   const make = (skip: string[]): Task[] => {
@@ -73,7 +79,7 @@ export function buildPlan(s: PlanState, minutes: Minutes, now: number, mode: 'au
       small = take(small, minutes - sum(big))
     }
     small.push(...take(routine.filter(t => !small.includes(t)), minutes - sum(small) - sum(big)))
-    return [...small.sort((a, b) => a.min - b.min), ...big]
+    return [...byPlace(small.sort((a, b) => a.min - b.min), s.home, zone), ...big]
   }
   const plan = make(skippedToday(s, now))
   if (plan.length) return plan

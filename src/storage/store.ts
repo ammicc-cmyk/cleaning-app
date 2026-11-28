@@ -60,7 +60,8 @@ export function load(): AppState {
   let raw: string | null = null
   try {
     raw = localStorage.getItem(KEY)
-    return parseState(raw)
+    // Каждый запуск начинается с 15 минут; 5 и 12 выбираются на один раз.
+    return { ...parseState(raw), minutes: initial.minutes }
   } catch {
     // Не затираем нечитаемые данные: оставляем копию для ручного восстановления.
     try { if (raw) localStorage.setItem(`${KEY}-broken`, raw) } catch { /* хранилище недоступно */ }

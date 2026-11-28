@@ -106,6 +106,9 @@ describe('план сессии', () => {
         // Больше времени сессии может занять только одно большое дело.
         if (plan.length > 1) expect(sum).toBeLessThanOrEqual(minutes)
         expect(sum).toBeGreaterThanOrEqual(minutes - 2)
+        // Каждое место встречается одним куском: не ходим туда-обратно.
+        const places = plan.map(t => weekZone(t.zone, home)).filter((p, i, a) => p !== a[i - 1])
+        expect(new Set(places).size).toBe(places.length)
         for (const t of plan) {
           expect(placeName(t.zone, home)).not.toBeNull()
           if (t.layer === 'deep') expect(weekZone(t.zone, home)).toBe(weekZone(s.focus!.zone, home))
