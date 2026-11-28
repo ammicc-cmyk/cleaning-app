@@ -81,12 +81,20 @@ input[type=text] { width:100%; min-height:48px; padding:8px 12px; border:1px sol
 .list:first-child { margin:0; }
 .list li { display:flex; justify-content:space-between; gap:12px; }
 .list small { color:var(--muted); white-space:nowrap; }
-.plan { margin:8px 0 0; padding:0; list-style:none; }
+.plan { margin:8px 0 0; padding:0; list-style:none; text-align:left; }
+.plan [data-state=done], .plan [data-state=past] { color:var(--muted); }
+.plan [data-state=now] { font-weight:600; }
+.plan [data-state=done] .num { background:var(--accent); border-color:var(--accent); color:var(--on); }
+.tags { display:flex; align-items:center; gap:8px; }
+.center .focus .tags { justify-content:center; }
+.num { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 4px; border:1px solid var(--line); border-radius:999px; font-size:13px; font-weight:600; line-height:1; }
+.focus .num { border-color:var(--on-focus-muted); color:var(--on-focus-muted); }
 .plan li { display:grid; justify-items:start; gap:4px; padding:10px 0; border-top:1px solid var(--line); line-height:1.35; }
 .plan li:first-child { border-top:0; }
 .plan .row { display:flex; justify-content:space-between; gap:12px; width:100%; }
 .plan small { color:var(--muted); font-size:14px; white-space:nowrap; }
 .zone { --z:var(--accent); font-size:13px; font-weight:600; padding:1px 10px; border-radius:999px; background:color-mix(in srgb, var(--z) 30%, var(--card)); color:var(--ink); }
+@media (prefers-color-scheme: dark) { .zone { background:color-mix(in srgb, var(--z) 45%, var(--card)); } }
 .zone[data-zone="kitchen"] { --z:#f0b48a; }
 .zone[data-zone="bath"] { --z:#7fb3d5; }
 .zone[data-zone="hall"] { --z:#d2b071; }

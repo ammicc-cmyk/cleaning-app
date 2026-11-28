@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { Minutes, ZoneId } from '../content/tasks'
-import { nextWeekZone, placeName, weekName } from '../content/home'
+import { nextWeekZone, weekName } from '../content/home'
+import { PlanList, ZoneTag } from './PlanList'
 import { TIPS } from '../content/tips'
 import { buildPlan, focusInfo, skip } from '../domain/planner'
 import { plural } from '../domain/progress'
@@ -41,9 +42,9 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
       {!state.guiltFree && week.done > 0 && !week.weekOver && !week.allDone && <p className="muted">Сделано дел: {week.done} из {week.total}</p>}
       <section className="focus">
         <div aria-live="polite" className="stack">
-          <p className="muted">{placeName(first.zone, state.home)}, около {first.min} мин</p>
+          <span className="tags"><span className="num">1</span><ZoneTag zone={first.zone} home={state.home} /></span>
           <p className="task">{first.text}</p>
-          {plan.length > 1 && <p className="muted">Дело 1 из {plan.length} · всего около {total} мин. Следующее появится после «Готово».</p>}
+          <p className="muted">Около {first.min} мин{plan.length > 1 && `. Дело 1 из ${plan.length}, всего около ${total} мин`}</p>
         </div>
         <button className="start" onClick={() => onStart(state.minutes)}>Запустить таймер на {state.minutes} мин</button>
         {away && state.minutes !== 5 && <button onClick={() => onStart(5, 'routine')}>Начать с 5 минут</button>}
@@ -54,15 +55,7 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
       </div>
       {plan.length > 1 && <details className="card">
         <summary>Весь список · {plan.length} {plural(plan.length, 'дело', 'дела', 'дел')} · {total} мин</summary>
-        <ol className="plan">{plan.map(t => {
-          const place = placeName(t.zone, state.home)
-          // «Комната» в однокомнатной квартире — одно место, значит и цвет один.
-          const tone = place === 'Комната' ? 'bedroom' : t.zone
-          return <li key={t.id}>
-            {place && <span className="zone" data-zone={tone}>{place}</span>}
-            <span className="row"><span>{t.text}</span><small>{t.min} мин</small></span>
-          </li>
-        })}</ol>
+        <PlanList tasks={plan} home={state.home} />
       </details>}
       <h2>Подсказка</h2>
       <section className="card stack">
