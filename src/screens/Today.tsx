@@ -53,8 +53,16 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
         {([5, 12, 15] as Minutes[]).map(m => <button key={m} aria-pressed={m === state.minutes} onClick={() => update({ minutes: m })}>{m} мин</button>)}
       </div>
       {plan.length > 1 && <details className="card">
-        <summary>Весь список: {plan.length} {plural(plan.length, 'дело', 'дела', 'дел')}, около {total} мин</summary>
-        <ul className="list">{plan.map(t => <li key={t.id}><span>{t.text}</span><small>{t.min} мин</small></li>)}</ul>
+        <summary>Весь список · {plan.length} {plural(plan.length, 'дело', 'дела', 'дел')} · {total} мин</summary>
+        <ol className="plan">{plan.map(t => {
+          const place = placeName(t.zone, state.home)
+          // «Комната» в однокомнатной квартире — одно место, значит и цвет один.
+          const tone = place === 'Комната' ? 'bedroom' : t.zone
+          return <li key={t.id}>
+            {place && <span className="zone" data-zone={tone}>{place}</span>}
+            <span className="row"><span>{t.text}</span><small>{t.min} мин</small></span>
+          </li>
+        })}</ol>
       </details>}
       <h2>Подсказка</h2>
       <section className="card stack">
