@@ -42,7 +42,7 @@ export function Today({ state, update, onStart, onZone, onPhoto, onScenarios }: 
       {!state.guiltFree && week.done > 0 && !week.weekOver && !week.allDone && <p className="muted">Сделано дел: {week.done} из {week.total}</p>}
       <section className="focus">
         <div aria-live="polite" className="stack">
-          <span className="tags"><span className="num">1</span><ZoneTag zone={first.zone} home={state.home} /></span>
+          <span className="tags"><ZoneTag zone={first.zone} home={state.home} /></span>
           <p className="task">{first.text}</p>
           <p className="muted">Около {first.min} мин{plan.length > 1 && `. Дело 1 из ${plan.length}, всего около ${total} мин`}</p>
         </div>

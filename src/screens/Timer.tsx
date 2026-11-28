@@ -58,7 +58,7 @@ export function Timer({ timer, home, onChange, onFinish, onStep, onCancel }: Pro
         </div>
         <p className="clock" role="timer">{formatLeft(leftMs(timer, now))}</p>
         <div className="stack" aria-live="polite">
-          <span className="tags"><span className="num">{timer.i + 1}</span><ZoneTag zone={task.zone} home={home} /></span>
+          <span className="tags"><ZoneTag zone={task.zone} home={home} /></span>
           <p className="task">{task.text}</p>
           <p className="muted">Около {task.min} мин</p>
         </div>

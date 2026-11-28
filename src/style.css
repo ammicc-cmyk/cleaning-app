@@ -87,9 +87,7 @@ input[type=text] { width:100%; min-height:48px; padding:8px 12px; border:1px sol
 .plan [data-state=done] .num { background:var(--accent); border-color:var(--accent); color:var(--on); }
 .tags { display:flex; align-items:center; gap:8px; }
 .center .focus .tags { justify-content:center; }
-.num { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 4px; border:1px solid var(--line); border-radius:999px; font-size:13px; font-weight:600; line-height:1; }
-.focus .num { border-color:var(--on-focus-muted); color:var(--on-focus-muted); }
-.plan li { display:grid; justify-items:start; gap:4px; padding:10px 0; border-top:1px solid var(--line); line-height:1.35; }
+.num { display:inline-grid; place-items:center; min-width:22px; height:22px; padding:0 4px; border:1px solid var(--line); border-radius:999px; font-size:13px; font-weight:600; line-height:1; }.plan li { display:grid; justify-items:start; gap:4px; padding:10px 0; border-top:1px solid var(--line); line-height:1.35; }
 .plan li:first-child { border-top:0; }
 .plan .row { display:flex; justify-content:space-between; gap:12px; width:100%; }
 .plan small { color:var(--muted); font-size:14px; white-space:nowrap; }
