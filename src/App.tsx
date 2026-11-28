@@ -170,7 +170,7 @@ export function App() {
       {state.timer
         ? <Timer timer={state.timer} home={state.home} onChange={timer => update({ timer })} onFinish={finish} onStep={step} onCancel={() => update({ timer: null })} />
         : screen === 'victory'
-          ? <Victory result={result} state={state} onMark={id => { update({ done: markDone(id) }); setResult(r => ({ ...r, done: [...r.done, id], pending: null })) }} onHome={() => setScreen('today')} onProfile={() => setScreen('profile')} />
+          ? <Victory result={result} state={state} onMark={id => { update({ done: markDone(id) }); setResult(r => ({ ...r, done: [...r.done, id], pending: null })) }} onHome={() => setScreen('today')} />
           : <>
             {screen === 'zones'
               ? <Zones state={state} onRestart={() => start(5, 'routine')} onZone={zone => { setFocus(zone); go('today') }} />

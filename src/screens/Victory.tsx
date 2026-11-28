@@ -4,9 +4,9 @@ import type { AppState } from '../storage/store'
 import resting from '../assets/minutka/minutka-rest.svg'
 
 export interface Result { sec: number; done: string[]; pending: string | null }
-interface Props { result: Result; state: AppState; onMark: (id: string) => void; onHome: () => void; onProfile: () => void }
+interface Props { result: Result; state: AppState; onMark: (id: string) => void; onHome: () => void }
 
-export function Victory({ result, state, onMark, onHome, onProfile }: Props) {
+export function Victory({ result, state, onMark, onHome }: Props) {
   const m = Math.round(result.sec / 60)
   const s = summary(state.sessions, Date.now())
   const pending = result.pending ? taskById(result.pending) : undefined
@@ -23,8 +23,8 @@ export function Victory({ result, state, onMark, onHome, onProfile }: Props) {
         <button onClick={() => onMark(pending.id)}>Это тоже сделано</button>
       </section>}
       {!state.guiltFree && <p className="muted">За 30 дней: {s.minutes} мин заботы о доме, {s.days} {plural(s.days, 'день', 'дня', 'дней')}.</p>}
+      <p className="muted">Прогресс сохранён.</p>
       <button className="primary" onClick={onHome}>Хорошо</button>
-      {!state.cloudCode && state.sessions.length > state.backedUp && <button className="link" onClick={onProfile}>Сохранить копию прогресса</button>}
     </main>
   )
 }
